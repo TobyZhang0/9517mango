@@ -83,7 +83,7 @@ val_test_transform = transforms.Compose([
 ])
 
 # ---------------------- 数据集 ----------------------
-# 修改为只支持 train 和 test 两种模式，实现80-20随机分割（每个类别内部打乱）
+# 实现80-20随机分割（每个类别内部打乱）
 class AerialDataset(Dataset):
     def __init__(self, root_dir, transform=None, mode='train'):
         self.root_dir = root_dir
