@@ -241,15 +241,6 @@ def plot_training_history(history):
     plt.savefig('training_history.png')
     plt.show()
 
-    # # 绘制每个epoch的训练时间
-    # plt.figure(figsize=(10, 4))
-    # plt.bar(range(1, len(history['epoch_time'])+1), history['epoch_time'])
-    # plt.xlabel('Epoch')
-    # plt.ylabel('Time (Seconds)')
-    # plt.title('Training Time per Epoch')
-    # plt.xticks(range(1, len(history['epoch_time'])+1))
-    # plt.savefig('training_time.png')
-    # plt.show()
 
 # 可视化混淆矩阵
 def plot_confusion_matrix(conf_matrix, classes):
