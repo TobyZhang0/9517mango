@@ -9,6 +9,7 @@ from torchvision import transforms
 from PIL import Image
 import os
 from sklearn.metrics import confusion_matrix, classification_report, accuracy_score
+from packaging import version
 
 # 设置中文字体显示
 plt.rcParams['font.sans-serif'] = ['SimHei']  # 用来正常显示中文标签
@@ -75,9 +76,22 @@ def create_test_dataloader(root_dir, batch_size=32):
     return test_loader, test_dataset.classes
 
 # 创建ViT模型
-def create_vit_model(num_classes=15):
+def create_vit_model(num_classes=15, compile_model=False):
+    import torch  # 添加在函数内部导入torch
     model = timm.create_model('vit_base_patch16_224', pretrained=True)
     model.head = nn.Linear(model.head.in_features, num_classes)
+    
+    # 在测试时通常不需要编译，但提供选项
+    if compile_model and version.parse(torch.__version__) >= version.parse('2.0.0'):
+        try:
+            print("尝试使用torch.compile加速模型...")
+            import torch._dynamo
+            torch._dynamo.config.suppress_errors = True
+            model = torch.compile(model)
+            print("模型编译成功")
+        except Exception as e:
+            print(f"torch.compile失败，回退到标准执行模式: {str(e)}")
+    
     return model
 
 # 测试函数
@@ -148,7 +162,7 @@ def main():
 
         # 创建模型并加载预训练权重
         print("正在加载模型...")
-        model = create_vit_model(num_classes=len(classes))
+        model = create_vit_model(num_classes=len(classes), compile_model=False)  # 测试阶段一般无需编译
         model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
         print("模型加载完成")
 
@@ -173,3 +187,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+

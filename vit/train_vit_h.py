@@ -3,7 +3,6 @@ import timm
 import numpy as np
 import time
 import matplotlib.pyplot as plt
-from matplotlib.animation import FuncAnimation
 import seaborn as sns
 from torch import nn, optim
 from torch.utils.data import DataLoader, Dataset
@@ -80,8 +79,7 @@ val_test_transform = transforms.Compose([
 ])
 
 # 创建数据加载器
-# 创建数据加载器
-def create_dataloaders(root_dir, batch_size=32):
+def create_dataloaders(root_dir, batch_size=8):  # 减小批量大小
     train_dataset = AerialDataset(root_dir=root_dir, transform=train_transform, mode='train')
     val_dataset = AerialDataset(root_dir=root_dir, transform=val_test_transform, mode='val')
     test_dataset = AerialDataset(root_dir=root_dir, transform=val_test_transform, mode='test')
@@ -97,8 +95,8 @@ def create_dataloaders(root_dir, batch_size=32):
 
 # 创建ViT模型
 def create_vit_model(num_classes=15):
-    model = timm.create_model('vit_base_patch16_224', pretrained=True)
-    model.head = nn.Linear(model.head.in_features, num_classes)
+    model = timm.create_model('vit_huge_patch14_224', pretrained=True)  # 使用ViT-H/14模型
+    model.head = nn.Linear(model.num_features, num_classes)  # 使用num_features而不是head.in_features
     return model
 
 # 训练函数
@@ -111,26 +109,11 @@ def train_model(model, train_loader, val_loader, criterion, optimizer, scheduler
         'val_loss': [],
         'train_acc': [],
         'val_acc': [],
-        'epoch_time': [],
-        'batch_losses': []  # 添加记录每个batch的损失
+        'epoch_time': []
     }
 
     best_val_acc = 0.0
-    
-    # 创建实时绘图窗口
-    plt.figure(figsize=(10, 5))
-    plt.title('实时Batch损失曲线')
-    plt.xlabel('Batch')
-    plt.ylabel('Loss')
-    plt.grid(True)
-    line, = plt.plot([], [], 'b-')
-    batch_losses = []
-    batch_indices = []
-    total_batch = 0
-    
-    # 设置图表可交互模式
-    plt.ion()
-    
+
     for epoch in range(num_epochs):
         # 训练阶段
         model.train()
@@ -140,7 +123,7 @@ def train_model(model, train_loader, val_loader, criterion, optimizer, scheduler
 
         start_time = time.time()
 
-        for batch_idx, (inputs, labels) in enumerate(train_loader):
+        for inputs, labels in train_loader:
             inputs, labels = inputs.to(device), labels.to(device)
 
             optimizer.zero_grad()
@@ -153,26 +136,10 @@ def train_model(model, train_loader, val_loader, criterion, optimizer, scheduler
             _, predicted = torch.max(outputs, 1)
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
-            
-            # 记录当前batch的损失并更新图表
-            batch_losses.append(loss.item())
-            batch_indices.append(total_batch)
-            total_batch += 1
-            
-            # 更新损失图表
-            line.set_data(batch_indices, batch_losses)
-            plt.xlim(0, max(1, max(batch_indices)))
-            plt.ylim(0, max(1, max(batch_losses) * 1.1))
-            plt.draw()
-            plt.pause(0.01)  # 短暂停顿以更新图表
-            
-            print(f"Epoch {epoch+1}/{num_epochs}, Batch {batch_idx+1}/{len(train_loader)}, Loss: {loss.item():.4f}", end='\r')
+            print(f"Epoch {epoch+1}/{num_epochs}, Batch Loss: {loss.item():.4f}", end='\r')
 
         train_loss = train_loss / len(train_loader.dataset)
         train_acc = correct / total
-
-        # 保存每个epoch结束时的所有batch损失
-        history['batch_losses'].extend(batch_losses)
 
         # 验证阶段
         model.eval()
@@ -218,19 +185,6 @@ def train_model(model, train_loader, val_loader, criterion, optimizer, scheduler
               f'Train Acc: {train_acc:.4f} | '
               f'Val Acc: {val_acc:.4f} | '
               f'Time: {epoch_time:.2f}s')
-    
-    # 关闭交互模式
-    plt.ioff()
-    
-    # 保存最终的batch loss曲线
-    plt.figure(figsize=(12, 6))
-    plt.plot(range(len(history['batch_losses'])), history['batch_losses'])
-    plt.title('所有Batch的损失曲线')
-    plt.xlabel('Batch')
-    plt.ylabel('Loss')
-    plt.grid(True)
-    plt.savefig('batch_loss_curve.png')
-    plt.close()
 
     return model, history
 
@@ -265,10 +219,8 @@ def test_model(model, test_loader, classes):
 
 # 可视化训练历史
 def plot_training_history(history):
-    plt.figure(figsize=(15, 10))
-    
     # 绘制损失曲线
-    plt.subplot(2, 2, 1)
+    plt.subplot(1, 2, 1)
     plt.plot(history['train_loss'], label='Training Loss')
     plt.plot(history['val_loss'], label='Validation Loss')
     plt.xlabel('Epoch')
@@ -277,25 +229,27 @@ def plot_training_history(history):
     plt.legend()
 
     # 绘制准确率曲线
-    plt.subplot(2, 2, 2)
+    plt.subplot(1, 2, 2)
     plt.plot(history['train_acc'], label='Training Accuracy')
     plt.plot(history['val_acc'], label='Validation Accuracy')
     plt.xlabel('Epoch')
     plt.ylabel('Accuracy')
     plt.title('Training and Validation Accuracy Curves')
     plt.legend()
-    
-    # 绘制每个batch的损失曲线
-    plt.subplot(2, 1, 2)
-    plt.plot(range(len(history['batch_losses'])), history['batch_losses'])
-    plt.xlabel('Batch')
-    plt.ylabel('Loss')
-    plt.title('Loss per Batch')
-    plt.grid(True)
 
     plt.tight_layout()
     plt.savefig('training_history.png')
     plt.show()
+
+    # # 绘制每个epoch的训练时间
+    # plt.figure(figsize=(10, 4))
+    # plt.bar(range(1, len(history['epoch_time'])+1), history['epoch_time'])
+    # plt.xlabel('Epoch')
+    # plt.ylabel('Time (Seconds)')
+    # plt.title('Training Time per Epoch')
+    # plt.xticks(range(1, len(history['epoch_time'])+1))
+    # plt.savefig('training_time.png')
+    # plt.show()
 
 # 可视化混淆矩阵
 def plot_confusion_matrix(conf_matrix, classes):
@@ -321,9 +275,9 @@ def main():
         return
 
     # 减小批次大小和工作进程数
-    batch_size = 16  # 减小批次大小
-    num_epochs = 5
-    learning_rate = 0.0001
+    batch_size = 4  # 进一步减小批次大小以适应更大的模型
+    num_epochs = 3
+    learning_rate = 0.00005  # 适当调整学习率
 
     try:
         # 创建数据加载器，降低worker数量
@@ -373,3 +327,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
