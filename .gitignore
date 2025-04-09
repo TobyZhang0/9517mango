@@ -1,1 +1,3 @@
 Aerial_Landscapes/
+__pycache__/
+*.pyc
