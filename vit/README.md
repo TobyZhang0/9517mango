@@ -9,3 +9,6 @@ https://www.bilibili.com/video/BV15RDtYqE4r
 
 小规模数据集效果不如resnet
 ![img.png](img.png)
+
+# 自动调整超参数
+![img_1.png](img_1.png)
