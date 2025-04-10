@@ -6,6 +6,6 @@ HENGZHANG ViT
 
 WANG YUYANG resnet  
 
-Haitao Ye  deeplearning
+Haitao Ye  DenseNet
 
 Boya Liu  efficientNet 
