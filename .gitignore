@@ -3,3 +3,4 @@ __pycache__/
 *.pyc
 DenseNet/saved_models
 DenseNet/saved_models_se
+EfficientNet/models
