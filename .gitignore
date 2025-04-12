@@ -4,3 +4,6 @@ __pycache__/
 DenseNet/saved_models
 DenseNet/saved_models_se
 EfficientNet/models
+
+traditional/.ipynb_checkpoints/
+traditional/Aerial_Landscapes/
