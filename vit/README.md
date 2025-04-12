@@ -12,3 +12,6 @@ https://www.bilibili.com/video/BV15RDtYqE4r
 
 # 自动调整超参数
 ![img_1.png](img_1.png)
+
+# Aerial Image Object Detection With Vision Transformer Detector (ViTDet)
+https://arxiv.org/abs/2301.12058
