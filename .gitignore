@@ -7,3 +7,5 @@ EfficientNet/models
 
 traditional/.ipynb_checkpoints/
 traditional/Aerial_Landscapes/
+
+.DS_Store
