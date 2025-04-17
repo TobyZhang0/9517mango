@@ -1,4 +1,1 @@
-对比ResNet模型在不使用数据增强和分别使用下面三种数据增强策略的性能表现
-torchversion
-Albumentations
-Kornia
+resnet_update.ipynb 中只保存最优的minimal模型，测试时从本地加载模型并测试评估
