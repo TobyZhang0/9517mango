@@ -12,7 +12,6 @@ LBP+KNN
   - Model training using SVM and KNN with hyperparameter tuning
   - Evaluation with classification metrics and confusion matrices
   - Performance comparison and best model selection
-- `best_model.joblib`: Auto-saved best model from the four combinations
 - `README.md`: Project overview and instructions
 
 ## Dataset
